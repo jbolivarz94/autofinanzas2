@@ -17,13 +17,13 @@ public class Usuario {
 
     @Override
     public String toString() {
-        return "Usuario{" +
-                "id=" + id +
-                ", identificacion='" + identificacion + '\'' +
-                ", nombre='" + nombre + '\'' +
-                ", apellido='" + apellido + '\'' +
-                ", email='" + email + '\'' +
-                ", telefono='" + telefono + '\'' +
+        return "{" +
+                    "id: " + id +
+                    ", identificacion: '" + identificacion + '\'' +
+                    ", nombre: '" + nombre + '\'' +
+                    ", apellido: '" + apellido + '\'' +
+                    ", email: '" + email + '\'' +
+                    ", telefono:'" + telefono + '\'' +
                 '}';
     }
 }

@@ -16,4 +16,16 @@ public class Transaccion {
     private LocalDate fecha;
     private String descripcion;
     private Double monto;
+
+    @Override
+    public String toString() {
+        return "{" +
+                "id: " + id +
+                ", idCuenta: " + idCuenta +
+                ", idCategoria: " + idCategoria +
+                ", fecha: " + fecha +
+                ", descripcion: '" + descripcion + '\'' +
+                ", monto: " + monto +
+                '}';
+    }
 }

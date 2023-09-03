@@ -16,12 +16,12 @@ public class Cuenta {
 
     @Override
     public String toString() {
-        return "Cuenta{" +
-                "id=" + id +
-                ", idUsuario=" + idUsuario +
-                ", numero='" + numero + '\'' +
-                ", tipo='" + tipo + '\'' +
-                ", montoInicial=" + montoInicial +
+        return "{" +
+                "id: " + id +
+                ", idUsuario: " + idUsuario +
+                ", numero: '" + numero + '\'' +
+                ", tipo: '" + tipo + '\'' +
+                ", montoInicial: " + montoInicial +
                 '}';
     }
 }
