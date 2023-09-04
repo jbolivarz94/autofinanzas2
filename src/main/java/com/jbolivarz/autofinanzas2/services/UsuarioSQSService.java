@@ -4,6 +4,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
 import com.jbolivarz.autofinanzas2.models.Usuario;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,7 @@ public class UsuarioSQSService {
         return clientSQS.createQueue(createQueueRequest).getQueueUrl();
     }
 
-    public void publishStandarQueueMessage(String urlQueue, Integer delaySeconds, Usuario usuario){
+    public String publishStandarQueueMessage(String urlQueue, Integer delaySeconds, Usuario usuario){
         Map<String, MessageAttributeValue> atributosMensaje = new HashMap<>();
 
         atributosMensaje.put("id", new MessageAttributeValue().withStringValue(usuario.getId().toString()).withDataType("Number"));
@@ -37,7 +38,7 @@ public class UsuarioSQSService {
                 .withDelaySeconds(delaySeconds)
                 .withMessageAttributes(atributosMensaje);
 
-        clientSQS.sendMessage(sendMessageRequest);
+        return  clientSQS.sendMessage(sendMessageRequest).getMessageId();
     }
 
     public void publishStandarQueueMessage(String urlQueue, Integer delaySeconds, List<Usuario> usuarios){
@@ -52,5 +53,37 @@ public class UsuarioSQSService {
                 .withWaitTimeSeconds(waitTimeSeconds);
 
         return clientSQS.receiveMessage(receiveMessageRequest).getMessages();
+    }
+
+    private String getQueueUrl(String queueName){
+        return clientSQS.getQueueUrl(queueName).getQueueUrl();
+    }
+
+    private List<Message> receiveMessagesFromQueue(String queueName, Integer maxNumberMessages, Integer waitTimeSeconds){
+        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(this.getQueueUrl(queueName))
+                .withMaxNumberOfMessages(maxNumberMessages)
+                .withMessageAttributeNames(List.of("All"))
+                .withWaitTimeSeconds(waitTimeSeconds);
+        return clientSQS.receiveMessage(receiveMessageRequest).getMessages();
+    }
+
+    public Mono<Usuario> deleteUsuarioMessageInQueue(String queueName, Integer maxNumberMessages,
+                                                     Integer waitTimeSeconds, String descripcionCredito){
+        List<Message> usuarioMessages = receiveMessagesFromQueue(queueName, maxNumberMessages, waitTimeSeconds);
+        for(Message message : usuarioMessages){
+            if(!message.getMessageAttributes().isEmpty()) {
+                if (message.getMessageAttributes().get("identificacion").getStringValue().equals(descripcionCredito)) {
+                    Usuario usuario = new Usuario(Integer.valueOf(message.getMessageAttributes().get("id").getStringValue()),
+                            message.getMessageAttributes().get("identificacion").getStringValue(),
+                            message.getMessageAttributes().get("nombre").getStringValue(),
+                            message.getMessageAttributes().get("apellido").getStringValue(),
+                            message.getMessageAttributes().get("email").getStringValue(),
+                            message.getMessageAttributes().get("telefono").getStringValue());
+                    clientSQS.deleteMessage(this.getQueueUrl(queueName), message.getReceiptHandle());
+                    return Mono.just(usuario);
+                }
+            }
+        }
+        return Mono.empty();
     }
 }
